@@ -1,29 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+
+struct Cofre{
+    int vida;
+    int dmg;
+};
+
+struct Heroe{
+    int vida;
+    int dmg;
+    int pos[2];
+};
 
 
-Struct Cofre{
-    int vida:
-    int dmg:
-}
+struct Monstruo{
+    int vida;
+    int dmg;
+    int pos[2];
+};
 
-Struct Heroe{
-    int vida:
-    int dmg:
-    int pos[2]:
-}
-
-
-Struct Monstruo{
-    int vida:
-    int dmg:
-    int pos[2]:
-}
-
-Struct Cuarto{
-    int pos[2]:
-    bool heroe:
-    bool monstruo:
-    cofre tesoro:
-    bool trampa:
-}
+struct Cuarto{
+    int pos[2];
+    bool heroe;
+    bool monstruo;
+    struct Cofre tesoro;
+    bool trampa;
+};
