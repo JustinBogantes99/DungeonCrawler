@@ -2,7 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <assert.h>
+#include <string.h>
+#include <stdbool.h>
 
+
+#include "keyboardListener.h"
 #include "tiposDatos.h"
 #include "mapa.h"
 
@@ -10,39 +15,23 @@
 #define PROBABILIDAD_TRAMPA 40
 
 int mapa[30][30] = {{0}};
+int cantidadDeCuartosActual;
 int dificultad;
 cuarto cuartos[30];
 personaje monstruos[15];
 objeto objetos[30];
 personaje heroe;
-
-/*
-[2,3]
-
-[0,0][0,1][0,2][0,3][0,4][0,5]
-[1,0][1,1][1,2][1,3][1,4][1,5]
-[2,0][2,1][2,2][2,3][2,4][2,5]
-[3,0][3,1][3,2][3,3][3,4][3,5]
-[4,0][4,1][4,2][4,3][4,4][4,5]
-
-*/
+void generarMapa(int[][30], int);
 
 // Inicio del programa
 // params:
 //  void
 int main(void) {
-  srand(time(NULL));
-  cuarto test;
-  test.pos.x = 0;
-  test.pos.y = 0;
-  returnVecinos *vecinos = todosLosVecinos(mapa, test, 10);
-  for (int i = 0; i < vecinos->cantidad; i++) {
-    printf("Valor de X: %d   Valor de Y: %d", vecinos->pos[i].x, vecinos->pos[i].y);
-    printf("\n");
-  }
-  printf("\n\n");
+  pthread_t guess;
 
-  cuarto cuarto1;
+  //assert (pthread_create (&guess, NULL, keyboard_listener, NULL) == 0);
+
+  /*cuarto cuarto1;
   cuarto1.pos.x = 1;
   cuarto1.pos.y = 0;
   cuarto1.cantidadDeCuartosVecinos = 1;
@@ -103,15 +92,43 @@ int main(void) {
   cuartos[6] = cuarto7;
   cuartos[7] = cuarto8;
   cuartos[8] = cuarto9;
-  cuartos[9] = cuarto10;
+  cuartos[9] = cuarto10;*/
 
-  posicion posTest;
-  posTest.x = 2;
-  posTest.y = 2;
 
-  int num = posicionValida(cuartos, posTest, 10);
-  printf("%i", num);
-  
-  free(vecinos);
+
+  srand(time(NULL));
+  cantidadDeCuartosActual = 0;
+
+  generarMapa(mapa,10);
+
+  /*void *result;
+  pthread_join (guess, &result);
+
+  if (result)
+    printf ("You must have guessed 7.\n");*/
+
   return 0;
+}
+
+
+// Función para inicializar los valores de la matriz mapa a 1
+// params:
+//  int max puede ser 10, 20, 30 dependiendo de la dificultad
+void generarMapa(int mapa[][30], int max) {
+  posicion cuartoActual;
+  cuartoActual = generarPrimerCuarto(mapa, max);
+  cuarto primerCuarto;
+  primerCuarto.pos = cuartoActual;
+  primerCuarto.tipoCuarto = 1;
+  primerCuarto.hayMonstruo = 0;
+  primerCuarto.cantidadDeCuartosVecinos = 0;
+  cuartos[0] = primerCuarto;
+  cantidadDeCuartosActual++;
+  printf("Primer Cuarto: X: %d  Y: %d \n\n", cuartos[0].pos.x, cuartos[0].pos.y);
+  returnVecinos *vecinos = todosLosVecinos(mapa, cuartos[0], max);
+  for(int i = 0; i < vecinos->cantidad; i++){
+    int esValido = posicionValida(cuartos, vecinos->pos[i], cantidadDeCuartosActual);
+    printf("Validando si el cuarto es valido: %d \n\n", esValido);
+  }
+  
 }

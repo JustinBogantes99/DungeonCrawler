@@ -1,23 +1,28 @@
 #ifndef MAPA_H
 #define MAPA_H
 
+/*
+[2,3]
+
+[0,0][0,1][0,2][0,3][0,4][0,5]
+[1,0][1,1][1,2][1,3][1,4][1,5]
+[2,0][2,1][2,2][2,3][2,4][2,5]
+[3,0][3,1][3,2][3,3][3,4][3,5]
+[4,0][4,1][4,2][4,3][4,4][4,5]
+
+*/
+
+
 #include "tiposDatos.h"
 
-void generarMapa(int[][30], int);
+
 void generarCuartos(int, int, posicion);
 returnVecinos *todosLosVecinos(int [][30], cuarto, int);
 posicion generarPrimerCuarto(int [][30], int);
 int posicionValida(cuarto cuartos[], posicion, int);
 
 
-// Función para inicializar los valores de la matriz mapa a 1
-// params:
-//  int max puede ser 10, 20, 30 dependiendo de la dificultad
-void generarMapa(int mapa[][30], int max) {
-  posicion cuartoActual;
-  cuartoActual = generarPrimerCuarto(mapa, max);
-  generarCuartos(1, max, cuartoActual);
-}
+
 
 void generarCuartos(int posicionActual, int max, posicion pos) {
   if (posicionActual == max - 1) {
@@ -77,7 +82,8 @@ returnVecinos *todosLosVecinos(int mapa[][30], cuarto cuartoActual, int max) {
       cantidadVecinosFactible++;
     }
   }
-  returnVecinos *ret = malloc(sizeof(returnVecinos) + 8*4);
+  
+  returnVecinos *ret = malloc(sizeof(returnVecinos) + 8 * cantidadVecinosFactible);
 
   for (int n = 0; n < cantidadVecinosFactible; n++) {
     ret->pos[n] = vecinos[n];
@@ -100,9 +106,8 @@ posicion generarPrimerCuarto(int mapa[][30],int max) {
 //Funcion que recibe una posicion y el total numero de cuartos y decide si
 //en la posicion puede existir un cuarto o no
 int posicionValida(cuarto cuartos[], posicion posicion, int max) {
-  // faltan vlaidaciones
+
   for (int i = 0; i < max; i++) {
-     printf("Cuarto %i ,X=%i y Y=%i \n", i,cuartos[i].pos.x, cuartos[i].pos.y);
     if ((cuartos[i].pos.x+1 == (posicion.x) ||
         cuartos[i].pos.x-1 == (posicion.x)) && 
         cuartos[i].pos.y == posicion.y){
