@@ -14,30 +14,28 @@
 #define PROBABILIDAD_TESORO 30
 #define PROBABILIDAD_TRAMPA 40
 
+int mapa[30][30] = {{0}};
 int cantidadDeCuartosActual;
 int dificultad;
 personaje monstruos[15];
 objeto objetos[30];
 personaje heroe;
 cuarto cuartos[30] = {0};
-int generarMapa(int[][30], int);
+void generarMapa(int[][30], int);
 
 // Inicio del programa
 // params:
 //  void
 int main(void) {
-  int mapa[30][30] = {{0}};
   
-  //pthread_t guess;
+  srand(time(NULL));
+  generarMapa(mapa,10);
+  
 
+
+  //pthread_t guess;
   //assert (pthread_create (&guess, NULL, keyboard_listener, NULL) == 0);
 
-
-  srand(time(NULL));
-
-
-  int a = generarMapa(mapa,10);
-  printf("Ya sali del generarMapa");
   /*void *result;
   pthread_join (guess, &result);
 
@@ -51,7 +49,7 @@ int main(void) {
 // Función para inicializar los valores de la matriz mapa a 1
 // params:
 //  int max puede ser 10, 20, 30 dependiendo de la dificultad
-int generarMapa(int mapa[][30], int max) {
+void generarMapa(int mapa[][30], int max) {
   cantidadDeCuartosActual = 0;
   posicion cuartoActual;
   cuartoActual = generarPrimerCuarto(mapa, max);
@@ -86,12 +84,10 @@ int generarMapa(int mapa[][30], int max) {
     nuevoCuarto.hayMonstruo = 0;
     nuevoCuarto.cantidadDeCuartosVecinos = 0;
     cuartos[iterador] = nuevoCuarto;
+    mapa[nuevoCuarto.pos.x][nuevoCuarto.pos.y] = 1;
     printf("Agregue el cuarto con X %d  Y %d \n", cuartos[iterador].pos.x, cuartos[iterador].pos.y);
     vecinos = todosLosVecinos(mapa, cuartos[iterador], max);
     
-    printf("Terminando el for\n\n\n");
-    
   }
-  return 0;
   
 }
