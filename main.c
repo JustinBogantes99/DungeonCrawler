@@ -129,15 +129,16 @@ void mover(int *monstruo_indx) {
 void monstruo(void *monstruo_indx) {
 
   int monstruo = *(int *)monstruo_indx;
-
+  int random;
   //printf("Vida del monstruo %i: %i\n", monstruo, monstruos[monstruo].vida);
   while (monstruos[monstruo].vida > 0) {
-
+    random = rand() %2;
     if(heroe.vida<=0){
       pthread_exit(0);
     }
-      
-    if (monstruos[monstruo].pos.x == heroe.pos.x &&
+
+    if(random==0){
+      if (monstruos[monstruo].pos.x == heroe.pos.x &&
         monstruos[monstruo].pos.y == heroe.pos.y) {
       pthread_mutex_lock(&mutex[monstruo]);
       heroe.vida--;
@@ -146,21 +147,24 @@ void monstruo(void *monstruo_indx) {
       
       sleep(1);
     }
+    }  
+
      //printf("antes de mover \n");
-    mover(monstruo);
-    sleep(1);
-    if (monstruos[monstruo].vida <= 0) {
-      pthread_exit(0);
+    if(random==1){
+     mover(monstruo);
+      sleep(1);
     }
+
+
   }
 
-    if(monstruos[monstruo].vida<0){
-    monstruos[monstruo].estado=0;
-    printf("memori \n");
-    int cuartodelmonstruo= encontrarIndexCuarto(monstruos[monstruo].pos);
-    cuartos[cuartodelmonstruo].hayMonstruo=0;
+
     
-  }
+  
+  monstruos[monstruo].estado=0;
+  printf("--------memori \n");
+  int cuartodelmonstruo= encontrarIndexCuarto(monstruos[monstruo].pos);
+  cuartos[cuartodelmonstruo].hayMonstruo=0;
 }
 
 void ubicarPersonajes(int max, int monstruosp) {
@@ -468,7 +472,7 @@ void *keyboard_listener(void *args) {
     printf("\n\n El heroe tiene las siguientes estadisticas: VIDA: %d  ATAQUE: %d \n\n", heroe.vida, heroe.ataque);
     cuarto = encontrarIndexCuarto(heroe.pos);
     if(cuartos[cuarto].tipoCuarto==2){
-
+      pthread_exit((void *)false);
       printf("CUARTO FINAL");
     }
   }
