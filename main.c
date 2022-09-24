@@ -24,7 +24,7 @@ void generarMapa(int[][30], int);
 int max;
 pthread_mutex_t mutex[15];
 pthread_mutex_t mutexHeroe;
-pthread_t HilosMonstruo[5];
+pthread_t HilosMonstruo[15];
 
 void *keyboard_listener(void *args);
 
@@ -130,11 +130,24 @@ void monstruo(void *monstruo_indx) {
 
   int monstruo = *(int *)monstruo_indx;
   int random;
+  int randomSleep;
+
   //printf("Vida del monstruo %i: %i\n", monstruo, monstruos[monstruo].vida);
   while (monstruos[monstruo].vida > 0) {
-    random = rand() %2;
+    random = rand() % 2;
+     randomSleep = rand() % 6 + 1;
     if(heroe.vida<=0){
       pthread_exit(0);
+    }
+
+    if (monstruos[monstruo].pos.x == heroe.pos.x &&
+      monstruos[monstruo].pos.y == heroe.pos.y) {
+      pthread_mutex_lock(&mutex[monstruo]);
+      heroe.vida--;
+      printf("\n Putazo del monstruo %d\n", monstruo);
+      pthread_mutex_unlock(&mutex[monstruo]);
+      
+      sleep(randomSleep);
     }
 
     if(random==0){
@@ -145,14 +158,14 @@ void monstruo(void *monstruo_indx) {
       printf("\n Putazo del monstruo %d\n", monstruo);
       pthread_mutex_unlock(&mutex[monstruo]);
       
-      sleep(1);
+      sleep(randomSleep);
     }
-    }  
+    }
 
      //printf("antes de mover \n");
     if(random==1){
      mover(monstruo);
-      sleep(1);
+      sleep(randomSleep);
     }
 
 
@@ -248,69 +261,6 @@ void verTesoroXTrampa(int max) {
   }
 }
 
-// Inicio del programa
-// params:
-//  void
-int main(void) {
-  max = 10;
-  srand(time(0));
-  generarMapa(mapa, 10);
-  int cuartoInicio = max - 1;
-  int cuartoFinal = rand() % max - 1;
-  cuartos[cuartoInicio].tipoCuarto = 0;
-  cuartos[cuartoFinal].tipoCuarto = 2;
-  ubicarTesorosXTrampas(max);
-  verTesoroXTrampa(max);
-  int cantidadMonsters = max / 2;
-  int arregloAntibugs[cantidadMonsters]; // arreglo para guardar los indices de
-                                         // monstruos, si se usa el i del for no
-                                         // funciona bien
-
- 
-
-  // Instancear heroe
-  heroe.ataque = 1;
-  heroe.vida = 4;
-  heroe.tipo = 0;
-  heroe.pos = cuartos[cuartoInicio].pos;
-
-  //pthread_t HilosMonstruo[cantidadMonsters];
-
-  personaje monster;
-  for (int x = 0; x < cantidadMonsters; x++) {
-    // printf("asignando mosntruo %i \n", x);
-    monster.tipo = 1;
-    monster.vida = 3;
-    monster.ataque = 1;
-    monstruos[x] = monster;
-  }
-
-  ubicarPersonajes(max, cantidadMonsters);
-  
-  // printf("Termine de asignar monstruos \n");
-  // creacion de mutex e hilos de los monstruos
-  for (int i = 0; i < cantidadMonsters; i++) {
-    pthread_mutex_init(&mutex[i], NULL);
-    arregloAntibugs[i] = i;
-    // printf("Creando hilo del monstruo %i \n", i);
-   pthread_create(&HilosMonstruo[i], NULL, (void *)&monstruo,
-                   (void *)&arregloAntibugs[i]);
-  }
-
-  printf("Cuarto final en x: %i y:%i \n",cuartos[cuartoFinal].pos.x, cuartos[cuartoFinal].pos.y);
-  pthread_t hiloHeroe;
-  pthread_mutex_init(&mutexHeroe, NULL);
-  assert(pthread_create(&hiloHeroe, NULL, keyboard_listener, NULL) == 0);
-
-  // join de los hilos de los monstruos
-  for (int i = 0; i < cantidadMonsters; i++) {
-    pthread_join(HilosMonstruo[i], NULL);
-  }
-
-  pthread_join(hiloHeroe, NULL);
-  return 0;
-}
-
 // Función para inicializar los valores de la matriz mapa a 1
 // params:
 //  int max puede ser 10, 20, 30 dependiendo de la dificultad
@@ -333,7 +283,9 @@ void generarMapa(int mapa[][30], int max) {
   posicion posiblesPosiciones[4];
 
   // Por aqui empieza el for para generar los cuartos a partir del primer cuarto
-  for (int iterador = 1; iterador < 10; iterador++) {
+  for (int iterador = 1; iterador < max; iterador++) {
+    printf("%d \n", iterador);
+    printf("%d \n", max);
     for (int i = 0; i < vecinos->cantidad; i++) {
       if (posicionValida(cuartos, vecinos->pos[i], cantidadDeCuartosActual) ==
           1) {
@@ -367,7 +319,7 @@ void *keyboard_listener(void *args) {
     if(heroe.vida<=0){
       printf("El heroe ha muerto :c");
       
-      pthread_exit((void *)false);
+      pthread_exit(0);
     }
 
     if (c == 'a') {
@@ -455,6 +407,7 @@ void *keyboard_listener(void *args) {
         }
       }
     }
+    sleep(1);
 
 
     for(int i=0; i<max;i++){
@@ -478,4 +431,69 @@ void *keyboard_listener(void *args) {
   }
   system("/bin/stty cooked");
   pthread_exit((void *)false);
+}
+
+
+
+
+// Inicio del programa
+// params:
+//  void
+int main(void) {
+  printf("Ingrese un número entero positivo\n");
+  scanf("%d", &max);
+  srand(time(0));
+  generarMapa(mapa, max);
+  int cuartoInicio = max - 1;
+  int cuartoFinal = rand() % max - 1;
+  cuartos[cuartoInicio].tipoCuarto = 0;
+  cuartos[cuartoFinal].tipoCuarto = 2;
+  ubicarTesorosXTrampas(max);
+  verTesoroXTrampa(max);
+  int cantidadMonsters = max / 2;
+  int arregloAntibugs[cantidadMonsters]; // arreglo para guardar los indices de
+                                         // monstruos, si se usa el i del for no
+                                         // funciona bien
+
+  // Instancear heroe
+  heroe.ataque = 1;
+  heroe.vida = 4;
+  heroe.tipo = 0;
+  heroe.pos = cuartos[cuartoInicio].pos;
+
+  //pthread_t HilosMonstruo[cantidadMonsters];
+
+  personaje monster;
+  for (int x = 0; x < cantidadMonsters; x++) {
+    // printf("asignando mosntruo %i \n", x);
+    monster.tipo = 1;
+    monster.vida = 3;
+    monster.ataque = 1;
+    monstruos[x] = monster;
+  }
+
+  ubicarPersonajes(max, cantidadMonsters);
+  
+  // printf("Termine de asignar monstruos \n");
+  // creacion de mutex e hilos de los monstruos
+  for (int i = 0; i < cantidadMonsters; i++) {
+    pthread_mutex_init(&mutex[i], NULL);
+    arregloAntibugs[i] = i;
+    // printf("Creando hilo del monstruo %i \n", i);
+   pthread_create(&HilosMonstruo[i], NULL, (void *)&monstruo,
+                   (void *)&arregloAntibugs[i]);
+  }
+
+  printf("Cuarto final en x: %i y:%i \n",cuartos[cuartoFinal].pos.x, cuartos[cuartoFinal].pos.y);
+  pthread_t hiloHeroe;
+  pthread_mutex_init(&mutexHeroe, NULL);
+  assert(pthread_create(&hiloHeroe, NULL, keyboard_listener, NULL) == 0);
+
+  // join de los hilos de los monstruos
+  //for (int i = 0; i < cantidadMonsters; i++) {
+  //  pthread_join(HilosMonstruo[i], NULL);
+  //}
+
+  pthread_join(hiloHeroe, NULL);
+  return 0;
 }
