@@ -45,7 +45,8 @@ personaje heroe;
 cuarto cuartos[30] = {0};
 void generarMapa(int[][30], int);
 int max;
-pthread_mutex_t mutex[15];
+pthread_mutex_t mutex[30];
+pthread_mutex_t mutexMonstruos[15];
 pthread_mutex_t mutexHeroe;
 pthread_t HilosMonstruo[15];
 
@@ -124,19 +125,21 @@ void mover(int *monstruo_indx) {
 
         indexCuartoViejo = encontrarIndexCuarto(
             monstruos[monstruo].pos); // busca index del cuarto viejo
-        pthread_mutex_lock(&mutex[monstruo]);
+        pthread_mutex_lock(&mutex[indexCuartoViejo]);
 
         cuartos[indexCuartoViejo].hayMonstruo =
             0; // indica que ya no hay un monstruo en el cuarto en el que estaba
                // el monstruo
-
+         pthread_mutex_unlock(&mutex[indexCuartoViejo]);
+        
         monstruos[monstruo].pos =
             vecinos[random]; // cambia la posicion del monstruo
 
+        pthread_mutex_lock(&mutex[indexCuartoNuevo]);
         cuartos[indexCuartoNuevo].hayMonstruo =
             1; // indica que hay un monstruo en el nuevo cuarto
         
-        pthread_mutex_unlock(&mutex[monstruo]);
+        pthread_mutex_unlock(&mutex[indexCuartoNuevo]);
 
         flag = 1; // indica que ya se movio de cuarto el monstruo
 
@@ -165,10 +168,10 @@ void monstruo(void *monstruo_indx) {
 
     if (monstruos[monstruo].pos.x == heroe.pos.x &&
       monstruos[monstruo].pos.y == heroe.pos.y) {
-      pthread_mutex_lock(&mutex[monstruo]);
+      pthread_mutex_lock(&mutexHeroe);
       heroe.vida--;
       printf("\n Putazo del monstruo %d\n", monstruo);
-      pthread_mutex_unlock(&mutex[monstruo]);
+      pthread_mutex_unlock(&mutexHeroe);
       
       sleep(randomSleep);
     }
@@ -176,10 +179,10 @@ void monstruo(void *monstruo_indx) {
     if(random==0){
       if (monstruos[monstruo].pos.x == heroe.pos.x &&
         monstruos[monstruo].pos.y == heroe.pos.y) {
-      pthread_mutex_lock(&mutex[monstruo]);
+      pthread_mutex_lock(&mutexHeroe);
       heroe.vida--;
       printf("\n Putazo del monstruo %d\n", monstruo);
-      pthread_mutex_unlock(&mutex[monstruo]);
+      pthread_mutex_unlock(&mutexHeroe);
       
       sleep(randomSleep);
     }
@@ -342,6 +345,9 @@ void generarMapa(int mapa[][30], int max) {
   }
 }
 
+/*
+Funcion que permite recibir de tecla un caracter , ya sea para moverse por el mapa, atacar a un enemigo y 
+*/
 void *keyboard_listener(void *args) {
   int c;
   posicion posicion_nueva;
@@ -355,7 +361,7 @@ void *keyboard_listener(void *args) {
       pthread_exit(0);
     }
 
-    if (c == 'w') {
+    if (c == 'a') {
       posicion_nueva.x = heroe.pos.x - 1;
       posicion_nueva.y = heroe.pos.y;
       cuarto = encontrarIndexCuarto(posicion_nueva);
@@ -369,7 +375,7 @@ void *keyboard_listener(void *args) {
       }
     }
 
-    if (c == 's') {
+    if (c == 'd') {
       posicion_nueva.x = heroe.pos.x + 1;
       posicion_nueva.y = heroe.pos.y;
       cuarto = encontrarIndexCuarto(posicion_nueva);
@@ -383,7 +389,7 @@ void *keyboard_listener(void *args) {
       }
     }
 
-    if (c == 'd') {
+    if (c == 'w') {
       posicion_nueva.x = heroe.pos.x;
       posicion_nueva.y = heroe.pos.y + 1;
       cuarto = encontrarIndexCuarto(posicion_nueva);
@@ -397,7 +403,7 @@ void *keyboard_listener(void *args) {
       }
     }
 
-    if (c == 'a') {
+    if (c == 's') {
       posicion_nueva.x = heroe.pos.x;
       posicion_nueva.y = heroe.pos.y - 1;
       cuarto = encontrarIndexCuarto(posicion_nueva);
@@ -416,8 +422,10 @@ void *keyboard_listener(void *args) {
         if(heroe.pos.x==objetos[i].pos.x && heroe.pos.y==objetos[i].pos.y){
           if(objetos[i].tipoObjeto==1 && objetos[i].activo==1){
             if(objetos[i].vida==1){
+              pthread_mutex_lock(&mutexHeroe);
               heroe.vida++;
               printf("\n\n Ha abierto un tesoro. Ahora tiene +1 Vida\n\n");
+              pthread_mutex_unlock(&mutexHeroe);
             }
             else{
               heroe.ataque++;
@@ -434,9 +442,10 @@ void *keyboard_listener(void *args) {
       monstruo = encontrarIndexMonstruo(heroe.pos);
       if(monstruo!=-1){
         if(monstruos[monstruo].estado==2){
-          pthread_mutex_lock(&mutexHeroe);
+          
+          pthread_mutex_lock(&mutexMonstruos[monstruo]);
           monstruos[monstruo].vida-=heroe.ataque;
-          pthread_mutex_unlock(&mutexHeroe);
+          pthread_mutex_unlock(&mutexMonstruos[monstruo]);
         }
       }
     }
@@ -648,10 +657,15 @@ int main(void) {
 
   ubicarPersonajes(max, cantidadMonsters);
   
+  //crear mutex de los cuartos
+  for(int m=0; m<max;m++){
+    pthread_mutex_init(&mutex[m], NULL);
+  }
+
   // printf("Termine de asignar monstruos \n");
   // creacion de mutex e hilos de los monstruos
   for (int i = 0; i < cantidadMonsters; i++) {
-    pthread_mutex_init(&mutex[i], NULL);
+    pthread_mutex_init(&mutexMonstruos[i], NULL);
     arregloAntibugs[i] = i;
     // printf("Creando hilo del monstruo %i \n", i);
    pthread_create(&HilosMonstruo[i], NULL, (void *)&monstruo,
