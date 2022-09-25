@@ -6,12 +6,35 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <signal.h>
+#include <gtk/gtk.h>
+#include <gtk/gtkx.h>
+#include <math.h>
+#include <ctype.h>
 
 #include "mapa.h"
 #include "tiposDatos.h"
 
-#define PROBABILIDAD_TESORO 30
-#define PROBABILIDAD_TRAMPA 40
+
+GtkWidget	  *window;
+GtkWidget	  *fixed1;
+GtkGrid	    *grid1;
+GtkWidget   *imageHeroe;
+GtkWidget   *imageMonstruo;
+GtkWidget   *imagePiso;
+GtkWidget   *imageCofre;
+GtkWidget   *imageCuarto;
+GtkWidget	  *buttonE;
+GtkWidget	  *buttonM;
+GtkWidget	  *buttonH;
+GtkWidget   *buttonInicio;
+GtkWidget   *box1;
+GtkWidget   *imagenInicio;
+GtkBuilder	*builder; 
+GList *children, *iter;
+
+
 
 int mapa[30][30] = {{0}};
 int cantidadDeCuartosActual;
@@ -254,7 +277,7 @@ void ubicarTesorosXTrampas(int max) {
 }
 
 void verTesoroXTrampa(int max) {
-  for (int i = 0; i < max; i++) {
+  for (int i = 0; i < max-1; i++) {
     printf("\n\n\nPARA EL OBJETO %d\n", i);
     printf("En el cuarto x: %d y: %d \n", objetos[i].pos.x, objetos[i].pos.y);
     printf("Se encuentra el objeto de tipo: %d\n\n", objetos[i].tipoObjeto);
@@ -286,14 +309,18 @@ void generarMapa(int mapa[][30], int max) {
   for (int iterador = 1; iterador < max; iterador++) {
     printf("%d \n", iterador);
     printf("%d \n", max);
+    printf("Cantidad de vecinos %d \n", vecinos->cantidad);
     for (int i = 0; i < vecinos->cantidad; i++) {
+      printf("Antes de posicion valida\n");
       if (posicionValida(cuartos, vecinos->pos[i], cantidadDeCuartosActual) ==
           1) {
+        printf("Entré a posición valida\n\n");
         posiblesPosiciones[cantidadFactibles] = vecinos->pos[i];
         cantidadFactibles++;
       }
+      printf("Fuera de posicion valida\n");
     }
-
+    printf("\nEsta es la cantidad de factibles: %d\n", cantidadFactibles);
     int cuartoACrear = rand() % cantidadFactibles;
     cantidadFactibles = 0;
     cuarto nuevoCuarto;
@@ -306,6 +333,12 @@ void generarMapa(int mapa[][30], int max) {
     printf("Agregue el cuarto con X %d  Y %d  TIPO: %d \n", cuartos[iterador].pos.x,
            cuartos[iterador].pos.y, cuartos[iterador].tipoCuarto);
     vecinos = todosLosVecinos(mapa, cuartos[iterador], max);
+    int tempIterador;
+    tempIterador = iterador;
+    while(vecinos->cantidad == 0){
+      tempIterador--;
+      vecinos = todosLosVecinos(mapa, cuartos[tempIterador], max);
+    }
   }
 }
 
@@ -322,7 +355,7 @@ void *keyboard_listener(void *args) {
       pthread_exit(0);
     }
 
-    if (c == 'a') {
+    if (c == 'w') {
       posicion_nueva.x = heroe.pos.x - 1;
       posicion_nueva.y = heroe.pos.y;
       cuarto = encontrarIndexCuarto(posicion_nueva);
@@ -336,7 +369,7 @@ void *keyboard_listener(void *args) {
       }
     }
 
-    if (c == 'd') {
+    if (c == 's') {
       posicion_nueva.x = heroe.pos.x + 1;
       posicion_nueva.y = heroe.pos.y;
       cuarto = encontrarIndexCuarto(posicion_nueva);
@@ -350,7 +383,7 @@ void *keyboard_listener(void *args) {
       }
     }
 
-    if (c == 'w') {
+    if (c == 'd') {
       posicion_nueva.x = heroe.pos.x;
       posicion_nueva.y = heroe.pos.y + 1;
       cuarto = encontrarIndexCuarto(posicion_nueva);
@@ -364,7 +397,7 @@ void *keyboard_listener(void *args) {
       }
     }
 
-    if (c == 's') {
+    if (c == 'a') {
       posicion_nueva.x = heroe.pos.x;
       posicion_nueva.y = heroe.pos.y - 1;
       cuarto = encontrarIndexCuarto(posicion_nueva);
@@ -422,7 +455,8 @@ void *keyboard_listener(void *args) {
         }
       }
 
-    printf("\n\n El heroe tiene las siguientes estadisticas: VIDA: %d  ATAQUE: %d \n\n", heroe.vida, heroe.ataque);
+    printf("\n\n El heroe tiene las siguientes estadisticas: VIDA: %d  ATAQUE: %d \n", heroe.vida, heroe.ataque);
+    printf("Y se encuentra en la posición actual de: X: %d  Y: %d", heroe.pos.x, heroe.pos.y);
     cuarto = encontrarIndexCuarto(heroe.pos);
     if(cuartos[cuarto].tipoCuarto==2){
       pthread_exit((void *)false);
@@ -436,12 +470,152 @@ void *keyboard_listener(void *args) {
 
 
 
+gboolean refrescar(){
+
+  
+  children = gtk_container_get_children(GTK_CONTAINER(grid1));
+  
+  for(iter = children; iter != NULL; iter = g_list_next(iter)){
+    gtk_widget_destroy(GTK_WIDGET(iter->data));
+  }
+
+  g_list_free(children);
+
+
+
+  
+
+  for(int i = 0; i < max; i++){  //Esta si debe ser max ya que es la matriz NxN
+    for(int j = 0; j < max; j++){
+
+    imagePiso = gtk_image_new_from_file("images/init.png");
+    gtk_grid_attach(GTK_GRID(grid1), imagePiso, i, j, 1, 1);
+
+    }
+  }
+
+//-------------------------------------------------------------------------------------- 
+
+  for(int i = 0; i < max; i++){   
+
+    if(cuartos[i].tipoCuarto == 0){
+
+      imageCuarto = gtk_image_new_from_file("images/salida.png");
+      gtk_grid_attach(GTK_GRID(grid1), imageCuarto, cuartos[i].pos.y, cuartos[i].pos.x, 1, 1);
+    }else if(cuartos[i].tipoCuarto == 2){
+
+      imageCuarto = gtk_image_new_from_file("images/final.png");
+      gtk_grid_attach(GTK_GRID(grid1), imageCuarto, cuartos[i].pos.y, cuartos[i].pos.x, 1, 1);
+
+    }else{
+      imageCuarto = gtk_image_new_from_file("images/cuarto.png");
+      gtk_grid_attach(GTK_GRID(grid1), imageCuarto, cuartos[i].pos.y, cuartos[i].pos.x, 1, 1);
+    }
+
+  }
+  
+
+//-------------------------------------------------------------------------------------- 
+
+
+  for(int i = 0; i < max; i++){
+
+    if(objetos[i].tipoObjeto == 1 && objetos[i].activo == 1 && objetos[i].pos.y >= 0 && objetos[i].pos.x >= 0 ){
+
+    imageCofre = gtk_image_new_from_file("images/cofre.png");
+    gtk_grid_attach(GTK_GRID(grid1), imageCofre, objetos[i].pos.y, objetos[i].pos.x, 1, 1);
+
+    }
+  }
+
+
+//-------------------------------------------------------------------------------------- 
+
+  imageHeroe = gtk_image_new_from_file("images/heroe.png");
+  gtk_grid_attach(GTK_GRID(grid1), imageHeroe, heroe.pos.y, heroe.pos.x, 1, 1);
+  
+
+//-------------------------------------------------------------------------------------- 
+
+  for(int i = 0; i < max/2; i++){
+    if(monstruos[i].estado != 0){
+      
+      imageMonstruo = gtk_image_new_from_file("images/monstruo.png");
+      gtk_grid_attach(GTK_GRID(grid1), imageMonstruo, monstruos[i].pos.y, monstruos[i].pos.x, 1, 1);
+
+    }
+  }
+
+  gtk_widget_show(window);
+  gtk_widget_show_all(grid1);
+  gtk_widget_queue_draw(grid1);
+
+
+
+  return TRUE;
+}
+
+
+
+void *llamada_ventana(){
+
+
+
+  gtk_init(NULL, NULL); // init Gtk
+ 
+  builder = gtk_builder_new_from_file ("prueba.glade"); //Abre el XML que genera glade
+ 
+  window = GTK_WIDGET(gtk_builder_get_object(builder, "ventana1")); //El nombre de la estructura aka ID
+
+  fixed1 = GTK_WIDGET(gtk_builder_get_object(builder, "fixed1")); // Recordar que se usa el nombre del ID en glade
+  grid1 = GTK_GRID(gtk_builder_get_object(builder, "matrix"));
+
+  g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL); 
+
+  gtk_builder_connect_signals(builder, NULL);
+
+
+  g_timeout_add(100,(GSourceFunc)refrescar, NULL);
+  gtk_main();
+
+}
+
+
+
+
 // Inicio del programa
 // params:
 //  void
 int main(void) {
-  printf("Ingrese un número entero positivo\n");
-  scanf("%d", &max);
+
+  int opcion;
+  
+  printf("Por favor ingrese la opcion de la dificultad que desea jugar.\n");
+  printf("1. Dificultad Facil. \n2. Dificultad Media. \n3. Dificultad Dificil.\n\n\n");
+
+  scanf("%d", &opcion);  
+  printf("%d", opcion);
+
+  switch(opcion){
+  
+  case 1:
+  	
+  	max = 10;
+  	break;
+  	
+  case 2:
+  	
+  	max = 20;
+  	break;
+  	
+  case 3:
+  	
+  	max = 30;
+  	break;
+  	
+  
+  }
+
   srand(time(0));
   generarMapa(mapa, max);
   int cuartoInicio = max - 1;
@@ -454,14 +628,14 @@ int main(void) {
   int arregloAntibugs[cantidadMonsters]; // arreglo para guardar los indices de
                                          // monstruos, si se usa el i del for no
                                          // funciona bien
-
+  
   // Instancear heroe
   heroe.ataque = 1;
   heroe.vida = 4;
   heroe.tipo = 0;
   heroe.pos = cuartos[cuartoInicio].pos;
 
-  //pthread_t HilosMonstruo[cantidadMonsters];
+  pthread_t HilosMonstruo[cantidadMonsters];
 
   personaje monster;
   for (int x = 0; x < cantidadMonsters; x++) {
@@ -484,16 +658,24 @@ int main(void) {
                    (void *)&arregloAntibugs[i]);
   }
 
+  pthread_t GUI;
+  pthread_create(&GUI, NULL, (void *)&llamada_ventana,NULL);
+
   printf("Cuarto final en x: %i y:%i \n",cuartos[cuartoFinal].pos.x, cuartos[cuartoFinal].pos.y);
   pthread_t hiloHeroe;
   pthread_mutex_init(&mutexHeroe, NULL);
   assert(pthread_create(&hiloHeroe, NULL, keyboard_listener, NULL) == 0);
+
 
   // join de los hilos de los monstruos
   //for (int i = 0; i < cantidadMonsters; i++) {
   //  pthread_join(HilosMonstruo[i], NULL);
   //}
 
+
   pthread_join(hiloHeroe, NULL);
+  pthread_join(GUI, NULL);
+
   return 0;
 }
+

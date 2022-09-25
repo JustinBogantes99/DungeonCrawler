@@ -1,7 +1,7 @@
 all: main
 
-CC = clang
-override CFLAGS += -g -Wno-everything -pthread -lm
+CC = gcc
+override CFLAGS += -g -Wno-everything -pthread -lm `pkg-config --cflags --libs gtk+-3.0` -export-dynamic
 
 SRCS = $(shell find . -name '.ccls-cache' -type d -prune -o -type f -name '*.c' -print)
 
