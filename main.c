@@ -161,7 +161,7 @@ void monstruo(void *monstruo_indx) {
   //printf("Vida del monstruo %i: %i\n", monstruo, monstruos[monstruo].vida);
   while (monstruos[monstruo].vida > 0) {
     random = rand() % 2;
-     randomSleep = rand() % 6 + 1;
+     randomSleep = rand() % 4;
     if(heroe.vida<=0){
       pthread_exit(0);
     }
@@ -449,7 +449,7 @@ void *keyboard_listener(void *args) {
         }
       }
     }
-    sleep(1);
+    sleep(0.1);
 
 
     for(int i=0; i<max;i++){
