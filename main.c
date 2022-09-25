@@ -361,7 +361,7 @@ void *keyboard_listener(void *args) {
       pthread_exit(0);
     }
 
-    if (c == 'a') {
+    if (c == 'w') {
       posicion_nueva.x = heroe.pos.x - 1;
       posicion_nueva.y = heroe.pos.y;
       cuarto = encontrarIndexCuarto(posicion_nueva);
@@ -375,7 +375,7 @@ void *keyboard_listener(void *args) {
       }
     }
 
-    if (c == 'd') {
+    if (c == 's') {
       posicion_nueva.x = heroe.pos.x + 1;
       posicion_nueva.y = heroe.pos.y;
       cuarto = encontrarIndexCuarto(posicion_nueva);
@@ -389,7 +389,7 @@ void *keyboard_listener(void *args) {
       }
     }
 
-    if (c == 'w') {
+    if (c == 'd') {
       posicion_nueva.x = heroe.pos.x;
       posicion_nueva.y = heroe.pos.y + 1;
       cuarto = encontrarIndexCuarto(posicion_nueva);
@@ -403,7 +403,7 @@ void *keyboard_listener(void *args) {
       }
     }
 
-    if (c == 's') {
+    if (c == 'a') {
       posicion_nueva.x = heroe.pos.x;
       posicion_nueva.y = heroe.pos.y - 1;
       cuarto = encontrarIndexCuarto(posicion_nueva);
