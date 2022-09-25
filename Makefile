@@ -1,14 +1,15 @@
-CC = cc
-CFLAGS = -pthread
-OBJECTS = main.o
-
 all: main
 
-main.o: main.c
-	$(CC) $(CFLAGS) -c main.c
+CC = gcc
+override CFLAGS += -g -Wno-everything -pthread -lm `pkg-config --cflags --libs gtk+-3.0` -export-dynamic
 
-main: $(OBJECTS)
-	$(CC) main.o -o main
+SRCS = $(shell find . -name '.ccls-cache' -type d -prune -o -type f -name '*.c' -print)
+
+main: $(SRCS)
+	$(CC) $(CFLAGS) $(SRCS) -o "$@"
+
+main-debug: $(SRCS)
+	$(CC) $(CFLAGS) -O0 $(SRCS) -o "$@"
 
 clean:
-	rm -f *.o main
+	rm -f main main-debug

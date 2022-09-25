@@ -15,8 +15,10 @@ typedef struct {
 } cuarto;
 
 // Tipo 0: Heroe, Tipo 1: Monstruo
+//estado 0: inactivo, estado 1: activo, estado 2: espera
 typedef struct {
   posicion pos;
+  int estado;
   int tipo;
   int vida;
   int ataque;
@@ -28,6 +30,7 @@ typedef struct {
   int tipoObjeto;
   int vida;
   int ataque;
+  int activo;
 
 } objeto;
 
