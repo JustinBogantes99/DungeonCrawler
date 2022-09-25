@@ -36,22 +36,23 @@ GList *children, *iter;
 
 
 
-int mapa[30][30] = {{0}};
-int cantidadDeCuartosActual;
-int dificultad;
-personaje monstruos[15];
-objeto objetos[30];
-personaje heroe;
-cuarto cuartos[30] = {0};
-void generarMapa(int[][30], int);
+int mapa[30][30] = {{0}};//matrix donde se van a crear los cuartos
+int cantidadDeCuartosActual;//cantidad de cuartos
+int dificultad;//dificultad que tendra el juego puede ser 10,20,30
+personaje monstruos[15];//arreglo con el maximo de enemigos totales
+objeto objetos[30];//arreglo con los objetos tipo trampa o tesoro
+personaje heroe;//objetivo tipo personaje que tendra el roll de usuario
+cuarto cuartos[30] = {0};//arreglo donde se almacenan todos los objeto tipo 
+void generarMapa(int[][30], int);//funcion para generar el mapa
 int max;
-pthread_mutex_t mutex[30];
-pthread_mutex_t mutexMonstruos[15];
-pthread_mutex_t mutexHeroe;
-pthread_t HilosMonstruo[15];
+pthread_mutex_t mutex[30];//arreglo de mutex
+pthread_mutex_t mutexMonstruos[15];//arreglo de mutex para monstruos
+pthread_mutex_t mutexHeroe;//hilo mutex para el heroe
+pthread_t HilosMonstruo[15];//arreglo de hilos para los monstruos
 
+//funcion que permite recibir del teclado hacia donde se va a mover el heroe
 void *keyboard_listener(void *args);
-
+//--------------------------------------------------------------------------------------
 int encontrarIndexCuarto(posicion pos) {
   int lengCuartos = sizeof(cuartos) / sizeof(cuartos[0]);
   for (int i = 0; i < lengCuartos; i++) {
@@ -61,7 +62,7 @@ int encontrarIndexCuarto(posicion pos) {
   }
   return -1;
 }
-
+//--------------------------------------------------------------------------------------
 int encontrarIndexMonstruo(posicion pos) {
   int lengMonstruos = sizeof(monstruos) / sizeof(monstruos[0]);
   for (int i = 0; i < lengMonstruos; i++) {
@@ -71,8 +72,10 @@ int encontrarIndexMonstruo(posicion pos) {
   }
   return -1;
 }
+//-------------------------------------------------------------------------------------- 
+// Esta funcion permite mover el monstruo de un cuarto a otro
+//-------------------------------------------------------------------------------------- 
 
-// Mueve el mosntruo de un cuarto a otro
 void mover(int *monstruo_indx) {
   //printf("entre a mover \n");
   int monstruo = monstruo_indx;
@@ -151,6 +154,8 @@ void mover(int *monstruo_indx) {
     }
   }
 }
+//-------------------------------------------------------------------------------------- 
+//-------------------------------------------------------------------------------------- 
 
 void monstruo(void *monstruo_indx) {
 
@@ -205,6 +210,10 @@ void monstruo(void *monstruo_indx) {
   int cuartodelmonstruo= encontrarIndexCuarto(monstruos[monstruo].pos);
   cuartos[cuartodelmonstruo].hayMonstruo=0;
 }
+//-------------------------------------------------------------------------------------- 
+/*Esta Funcion se encarga de ubicar los monstruos en la cantidad de cuarto 
+toma como parametros la cantidad de cuartos ingresados como maximo */
+//-------------------------------------------------------------------------------------- 
 
 void ubicarPersonajes(int max, int monstruosp) {
   // printf("entre a ubicar Personajes \n");
@@ -226,6 +235,10 @@ void ubicarPersonajes(int max, int monstruosp) {
     }
   }
 }
+//-------------------------------------------------------------------------------------- 
+/*Esta Funcion se encarga de ubicar los tesoros y trampas los cuartos
+toma como parametros la cantidad de cuartos ingresados como maximo , posiciona cada cuarto dependiendo de la probabilidad cada cuarto podra estar 40% con probabilidad de tener trampa, 30% de probabilidad de ser tesoro y el resto de estar vacio */
+//-------------------------------------------------------------------------------------- 
 
 void ubicarTesorosXTrampas(int max) {
   int i = 0;
@@ -278,7 +291,7 @@ void ubicarTesorosXTrampas(int max) {
     i++;
   }
 }
-
+//--------------------------------------------------------------------------------------
 void verTesoroXTrampa(int max) {
   for (int i = 0; i < max-1; i++) {
     printf("\n\n\nPARA EL OBJETO %d\n", i);
@@ -286,10 +299,12 @@ void verTesoroXTrampa(int max) {
     printf("Se encuentra el objeto de tipo: %d\n\n", objetos[i].tipoObjeto);
   }
 }
-
+//-------------------------------------------------------------------------------------- 
 // Función para inicializar los valores de la matriz mapa a 1
-// params:
+// params: matriz 30x30 y el valor de cuartos seleccionados
 //  int max puede ser 10, 20, 30 dependiendo de la dificultad
+//-------------------------------------------------------------------------------------- 
+
 void generarMapa(int mapa[][30], int max) {
   cantidadDeCuartosActual = 0;
   posicion cuartoActual;
@@ -344,10 +359,12 @@ void generarMapa(int mapa[][30], int max) {
     }
   }
 }
-
+//-------------------------------------------------------------------------------------- 
 /*
 Funcion que permite recibir de tecla un caracter , ya sea para moverse por el mapa, atacar a un enemigo y 
 */
+//-------------------------------------------------------------------------------------- 
+
 void *keyboard_listener(void *args) {
   int c;
   posicion posicion_nueva;
@@ -477,8 +494,11 @@ void *keyboard_listener(void *args) {
 }
 
 
+//-------------------------------------------------------------------------------------- 
 
-
+/*
+Esta funcion me permite refrescar la interfaz
+*/
 gboolean refrescar(){
 
   
